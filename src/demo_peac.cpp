@@ -2,10 +2,8 @@
 
 struct OrganizedImage3D {
     const cv::Mat_<cv::Vec3f>& cloud;
-    const double unit_scale_factor; //note: ahc::PlaneFitter assumes mm as unit!!!
-
-    OrganizedImage3D(const cv::Mat_<cv::Vec3f>& c, double unit_factor = 1.0) : cloud(c), unit_scale_factor(unit_factor) {}
-
+    //note: ahc::PlaneFitter assumes mm as unit!!!
+    OrganizedImage3D(const cv::Mat_<cv::Vec3f>& c): cloud(c) {}
     inline int width() const { return cloud.cols; }
     inline int height() const { return cloud.rows; }
     inline bool get(const int row, const int col, double& x, double& y, double& z) const {
@@ -35,9 +33,9 @@ int main()
         {
             float z = (float)depth_ptr[c]/5000.0;
             if(z>max_use_range){z=0;}
-            pt_ptr[c][0] = (c-cx)/f*z;
-            pt_ptr[c][1] = (r-cy)/f*z;
-            pt_ptr[c][2] = z;
+            pt_ptr[c][0] = (c-cx)/f*z*1000.0;//m->mm
+            pt_ptr[c][1] = (r-cy)/f*z*1000.0;//m->mm
+            pt_ptr[c][2] = z*1000.0;//m->mm
         }
     }
 
@@ -48,7 +46,7 @@ int main()
     pf.doRefine = true;
 
     cv::Mat seg(depth.rows, depth.cols, CV_8UC3);
-    OrganizedImage3D Ixyz(cloud, 1000.0);
+    OrganizedImage3D Ixyz(cloud);
     pf.run(&Ixyz, 0, &seg);
 
 
